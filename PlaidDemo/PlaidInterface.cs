@@ -60,7 +60,7 @@ namespace PlaidDemo
             int total = int.MaxValue;
             while (offset < total)
             {
-                JObject result = GetInstitutions(count, offset, false);
+                JObject result = GetInstitutions(count, offset);
                 List<JToken> jsonInstitutions = result["institutions"].ToList();
                 allInstitutions.AddRange(jsonInstitutions.Select(p => ConvertToInstitution(p)));
 
@@ -71,16 +71,16 @@ namespace PlaidDemo
             return allInstitutions;
         }
 
-        public static JObject GetInstitutions(int count, int offset, bool writeToConsole = true)
+        public static JObject GetInstitutions(int count, int offset)
         {
             JObject json = JObject.FromObject(new { client_id = Settings.Instance.PlaidSettings.Client_Id, secret = GetSecret(), count, offset });
-            return HttpRequestToPlaid("institutions/get", json, writeToConsole);
+            return HttpRequestToPlaid("institutions/get", json);
         }
 
         public static Institution GetInstitutionById(string institution_id)
         {
             JObject json = JObject.FromObject(new { public_key = Settings.Instance.PlaidSettings.Public_Key, institution_id });
-            JObject result = HttpRequestToPlaid("institutions/get_by_id", json, false);
+            JObject result = HttpRequestToPlaid("institutions/get_by_id", json);
             JToken jsonInstitution = result["institution"];
 
             return ConvertToInstitution(jsonInstitution);
@@ -91,7 +91,7 @@ namespace PlaidDemo
             List<Institution> institutions = new List<Institution>();
 
             JObject json = JObject.FromObject(new { public_key = Settings.Instance.PlaidSettings.Public_Key, query, products });
-            JObject result = HttpRequestToPlaid("institutions/search", json, false);
+            JObject result = HttpRequestToPlaid("institutions/search", json);
             List<JToken> jsonInstitutions = result["institutions"].ToList();
             institutions.AddRange(jsonInstitutions.Select(p => ConvertToInstitution(p)));
 
@@ -103,7 +103,6 @@ namespace PlaidDemo
             Institution result = new Institution();
             result.Name = jsonInstitution["name"].ToString();
             result.Id = jsonInstitution["institution_id"].ToString();
-            //result.Products = jsonInstitution["products"].ToObject<string[]>();
 
             return result;
         }
@@ -146,27 +145,33 @@ namespace PlaidDemo
             return result;
         }
 
-        public static List<Account> GetInstitutionAccounts(string access_token /*Todo: remove this parameter later*/)
+        public static List<Account> GetInstitutionAccounts(Institution institution)
         {
             List<Account> accounts = new List<Account>();
 
-            JObject json = JObject.FromObject(new { client_id = Settings.Instance.PlaidSettings.Client_Id, secret = GetSecret(), access_token });
-            JObject result = HttpRequestToPlaid("accounts/get", json, false);
+            JObject json = JObject.FromObject(new { client_id = Settings.Instance.PlaidSettings.Client_Id,
+                                                    secret = GetSecret(),
+                                                    access_token = institution.Credentials.AccessToken });
+            JObject result = HttpRequestToPlaid("accounts/get", json);
             List<JToken> jsonAccounts = result["accounts"].ToList();
             accounts.AddRange(jsonAccounts.Select(p => ConvertToAccount(p)));
 
             return accounts;
         }
 
-        public static List<Transaction> GetTransactions(string access_token /*Todo: remove this parameter later*/, DateTime startDate, DateTime endDate)
+        public static List<Transaction> GetTransactions(Institution institution, DateTime startDate, DateTime endDate)
         {
             List<Transaction> transactions = new List<Transaction>();
 
             string start_date = startDate.ToString("yyyy-MM-dd");
             string end_date = endDate.ToString("yyyy-MM-dd");
 
-            JObject json = JObject.FromObject(new { client_id = Settings.Instance.PlaidSettings.Client_Id, secret = GetSecret(), access_token, start_date, end_date });
-            JObject result = HttpRequestToPlaid("transactions/get", json, false);
+            JObject json = JObject.FromObject(new { client_id = Settings.Instance.PlaidSettings.Client_Id,
+                                                    secret = GetSecret(),
+                                                    access_token = institution.Credentials.AccessToken,
+                                                    start_date,
+                                                    end_date });
+            JObject result = HttpRequestToPlaid("transactions/get", json);
             List<JToken> jsonTransactions = result["transactions"].ToList();
             transactions.AddRange(jsonTransactions.Select(p => ConvertToTransaction(p)));
 
@@ -187,14 +192,22 @@ namespace PlaidDemo
             return accounts;
         }
 
-        public static Credentials AuthenticateInstitution(Institution institution, string public_token)
+        public static Credentials AuthorizeInstitution(Institution institution, string public_token)
         {
             JObject json = JObject.FromObject(new { client_id = Settings.Instance.PlaidSettings.Client_Id, secret = GetSecret(), public_token });
-            JObject result = HttpRequestToPlaid("item/public_token/exchange", json, false);
+            JObject result = HttpRequestToPlaid("item/public_token/exchange", json);
             string access_token = result["access_token"].ToString();
             string item_id = result["item_id"].ToString();
 
             return new Credentials() { AccessToken = access_token, Item = item_id };
+        }
+
+        public static void DeauthorizeInstitution(Institution institution)
+        {
+            JObject json = JObject.FromObject(new { client_id = Settings.Instance.PlaidSettings.Client_Id,
+                                                    secret = GetSecret(),
+                                                    access_token = institution.Credentials.AccessToken });
+            JObject result = HttpRequestToPlaid("item/remove", json);
         }
 
         private static string GetBaseUrl()
@@ -221,42 +234,33 @@ namespace PlaidDemo
             }
         }
 
-        private static JObject HttpRequestToPlaid(string apiEndpoint, JObject payload, bool writeToConsole = true)
+        private static JObject HttpRequestToPlaid(string apiEndpoint, JObject payload)
         {
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(GetBaseUrl() + apiEndpoint);
-            //HttpWebRequest class is used to Make a request to a Uniform Resource Identifier (URI).  
             request.ContentType = "application/json";
-            // Set the ContentType property of the WebRequest. 
             request.Method = "POST";
             byte[] byteArray = Encoding.UTF8.GetBytes(payload.ToString());
-            // Set the ContentLength property of the WebRequest. 
             request.ContentLength = byteArray.Length;
 
-            //Get the stream that holds request data by calling the GetRequestStream method. 
             Stream dataStream = request.GetRequestStream();
-            // Write the data to the request stream. 
             dataStream.Write(byteArray, 0, byteArray.Length);
-            // Close the Stream object. 
             dataStream.Close();
 
             try
             {
-                // Get the stream containing content returned by the server.
                 WebResponse response = request.GetResponse();
-                //Send the request to the server by calling GetResponse. 
                 dataStream = response.GetResponseStream();
-                // Open the stream using a StreamReader for easy access. 
                 StreamReader reader = new StreamReader(dataStream);
-                // Read the content. 
-                string Response = reader.ReadToEnd();
 
-                JObject resultJson = JObject.Parse(Response); //Todo: this should be deserialized to a custom class
+                string Response = reader.ReadToEnd();
+                JObject resultJson = JObject.Parse(Response);
 
                 return resultJson;
             }
             catch (WebException ex)
             {
-                string errorMessage = string.Format("Error Status Code : {1} {0}", ((HttpWebResponse)ex.Response).StatusCode, (int)((HttpWebResponse)ex.Response).StatusCode);
+                string errorMessage = string.Format("Error Status Code : {1} {0}", ((HttpWebResponse)ex.Response).StatusCode, 
+                                                                                   (int)((HttpWebResponse)ex.Response).StatusCode);
                 using (var stream = ex.Response.GetResponseStream())
                 using (var reader = new StreamReader(stream))
                 {

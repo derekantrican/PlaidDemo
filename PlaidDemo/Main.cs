@@ -58,7 +58,7 @@ namespace PlaidDemo
             {
                 foreach (Institution bank in Settings.GetCurrentInstitutions())
                 {
-                    List<Account> accountsForBank = PlaidInterface.GetInstitutionAccounts(bank.Credentials.AccessToken);
+                    List<Account> accountsForBank = PlaidInterface.GetInstitutionAccounts(bank);
                     bank.Accounts = accountsForBank;
                     foreach (Account account in accountsForBank)
                         comboBoxAccounts.Items.Add(account);
@@ -67,7 +67,7 @@ namespace PlaidDemo
             else
             {
                 Institution selectedBank = (Institution)comboBoxBanks.SelectedItem;
-                List<Account> accounts = PlaidInterface.GetInstitutionAccounts(selectedBank.Credentials.AccessToken);
+                List<Account> accounts = PlaidInterface.GetInstitutionAccounts(selectedBank);
                 selectedBank.Accounts = accounts;
                 foreach (Account account in accounts)
                     comboBoxAccounts.Items.Add(account);
@@ -93,7 +93,7 @@ namespace PlaidDemo
                 {
                     foreach (Institution bank in Settings.GetCurrentInstitutions())
                     {
-                        List<Transaction> transactionsForBank = PlaidInterface.GetTransactions(bank.Credentials.AccessToken, dateTimePickerStart.Value, dateTimePickerEnd.Value);
+                        List<Transaction> transactionsForBank = PlaidInterface.GetTransactions(bank, dateTimePickerStart.Value, dateTimePickerEnd.Value);
                         PlaidInterface.AddTransactionsToAccounts(bank.Accounts, transactionsForBank);
 
                         transactionsToDisplay.AddRange(transactionsForBank);
@@ -102,7 +102,7 @@ namespace PlaidDemo
                 else
                 {
                     Institution selectedBank = (Institution)comboBoxBanks.SelectedItem;
-                    List<Transaction> transactionsForBank = PlaidInterface.GetTransactions(selectedBank.Credentials.AccessToken, dateTimePickerStart.Value, dateTimePickerEnd.Value);
+                    List<Transaction> transactionsForBank = PlaidInterface.GetTransactions(selectedBank, dateTimePickerStart.Value, dateTimePickerEnd.Value);
                     PlaidInterface.AddTransactionsToAccounts(selectedBank.Accounts, transactionsForBank);
 
                     transactionsToDisplay.AddRange(transactionsForBank);
@@ -115,7 +115,7 @@ namespace PlaidDemo
                 Institution bankHoldingAccount = Settings.GetCurrentInstitutions().Find(p => p.Accounts.Find(a => a.Id == selectedAccount.Id) != null);
                 comboBoxBanks.SelectedItem = bankHoldingAccount;
 
-                List<Transaction> transactionsForBank = PlaidInterface.GetTransactions(bankHoldingAccount.Credentials.AccessToken, dateTimePickerStart.Value, dateTimePickerEnd.Value);
+                List<Transaction> transactionsForBank = PlaidInterface.GetTransactions(bankHoldingAccount, dateTimePickerStart.Value, dateTimePickerEnd.Value);
                 PlaidInterface.AddTransactionsToAccounts(bankHoldingAccount.Accounts, transactionsForBank);
 
                 transactionsToDisplay.AddRange(selectedAccount.RecentTransactions);

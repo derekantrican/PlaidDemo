@@ -17,7 +17,6 @@ namespace PlaidDemo
         public string Name { get; set; }
         public string Id { get; set; }
         public Credentials Credentials { get; set; }
-        //public string[] Products { get; set; }
         public List<Account> Accounts { get; set; }
 
         public override string ToString()

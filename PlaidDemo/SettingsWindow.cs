@@ -75,10 +75,25 @@ namespace PlaidDemo
             buttonAuthorize.Visible = true;
         }
 
+        private void buttonRemove_Click(object sender, EventArgs e)
+        {
+            if (listBoxBankAccounts.SelectedItems.Count == 0)
+                MessageBox.Show("No account is selected in the list");
+            else
+            {
+                List<Institution> selectedBanks = listBoxBankAccounts.SelectedItems.Cast<Institution>().ToList();
+                for (int i = 0; i < selectedBanks.Count; i++)
+                {
+                    listBoxBankAccounts.Items.Remove(selectedBanks[i]);
+                    PlaidInterface.DeauthorizeInstitution(selectedBanks[i]);
+                }
+            }
+        }
+
         private void buttonAuthorize_Click(object sender, EventArgs e)
         {
             Institution bank = PlaidInterface.GetInstitutionById(textBoxInstitutionId.Text);
-            bank.Credentials = PlaidInterface.AuthenticateInstitution(bank, textBoxPublicToken.Text);
+            bank.Credentials = PlaidInterface.AuthorizeInstitution(bank, textBoxPublicToken.Text);
 
             listBoxBankAccounts.Items.Add(bank);
 
@@ -149,6 +164,25 @@ namespace PlaidDemo
             DialogResult result = MessageBox.Show("Do you want to reset the " + comboBoxPlaidEnvironments.SelectedItem + " accounts?", "Reset accounts?", MessageBoxButtons.YesNo);
             if (result == DialogResult.Yes)
                 listBoxBankAccounts.Items.Clear();
+        }
+
+        private void listBoxBankAccounts_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                int index = this.listBoxBankAccounts.IndexFromPoint(new Point(e.X, e.Y));
+
+                if (index < 0)
+                    return;
+
+                this.listBoxBankAccounts.SelectedIndex = index;
+
+                ContextMenu removeMenu = new ContextMenu();
+                MenuItem removeItem = new MenuItem() { Text = "Remove" };
+                removeItem.Click += (s, args) => { listBoxBankAccounts.Items.RemoveAt(index); };
+                removeMenu.MenuItems.Add(removeItem);
+                removeMenu.Show((sender as ListBox), new Point(e.X, e.Y));
+            }
         }
     }
 }

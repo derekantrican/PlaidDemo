@@ -31,7 +31,11 @@
             this.buttonCancel = new System.Windows.Forms.Button();
             this.buttonSave = new System.Windows.Forms.Button();
             this.tabControl = new System.Windows.Forms.TabControl();
+            this.tabPageMain = new System.Windows.Forms.TabPage();
+            this.checkBoxReverseAmounts = new System.Windows.Forms.CheckBox();
             this.tabPageAccounts = new System.Windows.Forms.TabPage();
+            this.textBoxInstitutionId = new System.Windows.Forms.TextBox();
+            this.labelInstitutionId = new System.Windows.Forms.Label();
             this.buttonAuthorize = new System.Windows.Forms.Button();
             this.labelPublicToken = new System.Windows.Forms.Label();
             this.textBoxPublicToken = new System.Windows.Forms.TextBox();
@@ -50,14 +54,11 @@
             this.textBoxPublicKey = new System.Windows.Forms.TextBox();
             this.labelClientId = new System.Windows.Forms.Label();
             this.textBoxClientId = new System.Windows.Forms.TextBox();
-            this.labelInstitutionId = new System.Windows.Forms.Label();
-            this.textBoxInstitutionId = new System.Windows.Forms.TextBox();
-            this.tabPageMain = new System.Windows.Forms.TabPage();
-            this.checkBoxReverseAmounts = new System.Windows.Forms.CheckBox();
+            this.buttonRemove = new System.Windows.Forms.Button();
             this.tabControl.SuspendLayout();
+            this.tabPageMain.SuspendLayout();
             this.tabPageAccounts.SuspendLayout();
             this.tabPagePlaid.SuspendLayout();
-            this.tabPageMain.SuspendLayout();
             this.SuspendLayout();
             // 
             // buttonCancel
@@ -92,8 +93,29 @@
             this.tabControl.TabIndex = 2;
             this.tabControl.SelectedIndexChanged += new System.EventHandler(this.tabControl_SelectedIndexChanged);
             // 
+            // tabPageMain
+            // 
+            this.tabPageMain.Controls.Add(this.checkBoxReverseAmounts);
+            this.tabPageMain.Location = new System.Drawing.Point(4, 22);
+            this.tabPageMain.Name = "tabPageMain";
+            this.tabPageMain.Size = new System.Drawing.Size(447, 322);
+            this.tabPageMain.TabIndex = 2;
+            this.tabPageMain.Text = "Main";
+            this.tabPageMain.UseVisualStyleBackColor = true;
+            // 
+            // checkBoxReverseAmounts
+            // 
+            this.checkBoxReverseAmounts.AutoSize = true;
+            this.checkBoxReverseAmounts.Location = new System.Drawing.Point(17, 14);
+            this.checkBoxReverseAmounts.Name = "checkBoxReverseAmounts";
+            this.checkBoxReverseAmounts.Size = new System.Drawing.Size(198, 17);
+            this.checkBoxReverseAmounts.TabIndex = 0;
+            this.checkBoxReverseAmounts.Text = "Reverse Transaction Amounts? (+/-)";
+            this.checkBoxReverseAmounts.UseVisualStyleBackColor = true;
+            // 
             // tabPageAccounts
             // 
+            this.tabPageAccounts.Controls.Add(this.buttonRemove);
             this.tabPageAccounts.Controls.Add(this.textBoxInstitutionId);
             this.tabPageAccounts.Controls.Add(this.labelInstitutionId);
             this.tabPageAccounts.Controls.Add(this.buttonAuthorize);
@@ -108,6 +130,24 @@
             this.tabPageAccounts.TabIndex = 1;
             this.tabPageAccounts.Text = "Bank Accounts";
             this.tabPageAccounts.UseVisualStyleBackColor = true;
+            // 
+            // textBoxInstitutionId
+            // 
+            this.textBoxInstitutionId.Location = new System.Drawing.Point(184, 265);
+            this.textBoxInstitutionId.Name = "textBoxInstitutionId";
+            this.textBoxInstitutionId.Size = new System.Drawing.Size(207, 20);
+            this.textBoxInstitutionId.TabIndex = 6;
+            this.textBoxInstitutionId.Visible = false;
+            // 
+            // labelInstitutionId
+            // 
+            this.labelInstitutionId.AutoSize = true;
+            this.labelInstitutionId.Location = new System.Drawing.Point(105, 268);
+            this.labelInstitutionId.Name = "labelInstitutionId";
+            this.labelInstitutionId.Size = new System.Drawing.Size(67, 13);
+            this.labelInstitutionId.TabIndex = 5;
+            this.labelInstitutionId.Text = "Institution Id:";
+            this.labelInstitutionId.Visible = false;
             // 
             // buttonAuthorize
             // 
@@ -155,6 +195,7 @@
             this.listBoxBankAccounts.Name = "listBoxBankAccounts";
             this.listBoxBankAccounts.Size = new System.Drawing.Size(435, 251);
             this.listBoxBankAccounts.TabIndex = 0;
+            this.listBoxBankAccounts.MouseDown += new System.Windows.Forms.MouseEventHandler(this.listBoxBankAccounts_MouseDown);
             // 
             // tabPagePlaid
             // 
@@ -279,43 +320,15 @@
             this.textBoxClientId.Size = new System.Drawing.Size(369, 20);
             this.textBoxClientId.TabIndex = 0;
             // 
-            // labelInstitutionId
+            // buttonRemove
             // 
-            this.labelInstitutionId.AutoSize = true;
-            this.labelInstitutionId.Location = new System.Drawing.Point(105, 268);
-            this.labelInstitutionId.Name = "labelInstitutionId";
-            this.labelInstitutionId.Size = new System.Drawing.Size(67, 13);
-            this.labelInstitutionId.TabIndex = 5;
-            this.labelInstitutionId.Text = "Institution Id:";
-            this.labelInstitutionId.Visible = false;
-            // 
-            // textBoxInstitutionId
-            // 
-            this.textBoxInstitutionId.Location = new System.Drawing.Point(184, 265);
-            this.textBoxInstitutionId.Name = "textBoxInstitutionId";
-            this.textBoxInstitutionId.Size = new System.Drawing.Size(207, 20);
-            this.textBoxInstitutionId.TabIndex = 6;
-            this.textBoxInstitutionId.Visible = false;
-            // 
-            // tabPageMain
-            // 
-            this.tabPageMain.Controls.Add(this.checkBoxReverseAmounts);
-            this.tabPageMain.Location = new System.Drawing.Point(4, 22);
-            this.tabPageMain.Name = "tabPageMain";
-            this.tabPageMain.Size = new System.Drawing.Size(447, 322);
-            this.tabPageMain.TabIndex = 2;
-            this.tabPageMain.Text = "Main";
-            this.tabPageMain.UseVisualStyleBackColor = true;
-            // 
-            // checkBoxReverseAmounts
-            // 
-            this.checkBoxReverseAmounts.AutoSize = true;
-            this.checkBoxReverseAmounts.Location = new System.Drawing.Point(17, 14);
-            this.checkBoxReverseAmounts.Name = "checkBoxReverseAmounts";
-            this.checkBoxReverseAmounts.Size = new System.Drawing.Size(198, 17);
-            this.checkBoxReverseAmounts.TabIndex = 0;
-            this.checkBoxReverseAmounts.Text = "Reverse Transaction Amounts? (+/-)";
-            this.checkBoxReverseAmounts.UseVisualStyleBackColor = true;
+            this.buttonRemove.Location = new System.Drawing.Point(6, 292);
+            this.buttonRemove.Name = "buttonRemove";
+            this.buttonRemove.Size = new System.Drawing.Size(75, 23);
+            this.buttonRemove.TabIndex = 7;
+            this.buttonRemove.Text = "Remove";
+            this.buttonRemove.UseVisualStyleBackColor = true;
+            this.buttonRemove.Click += new System.EventHandler(this.buttonRemove_Click);
             // 
             // SettingsWindow
             // 
@@ -329,12 +342,12 @@
             this.Name = "SettingsWindow";
             this.Text = "SettingsWindow";
             this.tabControl.ResumeLayout(false);
+            this.tabPageMain.ResumeLayout(false);
+            this.tabPageMain.PerformLayout();
             this.tabPageAccounts.ResumeLayout(false);
             this.tabPageAccounts.PerformLayout();
             this.tabPagePlaid.ResumeLayout(false);
             this.tabPagePlaid.PerformLayout();
-            this.tabPageMain.ResumeLayout(false);
-            this.tabPageMain.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -367,5 +380,6 @@
         private System.Windows.Forms.Label labelInstitutionId;
         private System.Windows.Forms.TabPage tabPageMain;
         private System.Windows.Forms.CheckBox checkBoxReverseAmounts;
+        private System.Windows.Forms.Button buttonRemove;
     }
 }
