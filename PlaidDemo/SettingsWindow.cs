@@ -13,20 +13,27 @@ namespace PlaidDemo
 {
     public partial class SettingsWindow : Form
     {
+        List<Institution> sandboxInstitutions = new List<Institution>();
+        List<Institution> developmentInstitutions = new List<Institution>();
+        List<Institution> bankAccountsToDeauthorize = new List<Institution>();
+
         public SettingsWindow()
         {
             InitializeComponent();
 
             checkBoxReverseAmounts.Checked = Settings.Instance.ReverseTransactionAmounts;
 
+            sandboxInstitutions.AddRange(Settings.Instance.SandboxInstitutions);
+            developmentInstitutions.AddRange(Settings.Instance.DevelopmentInstitutions);
+
             if (Settings.Instance.PlaidSettings.Environment == Enums.Environment.Sandbox)
             {
-                foreach (Institution bank in Settings.Instance.SandboxInstitutions)
+                foreach (Institution bank in sandboxInstitutions)
                     listBoxBankAccounts.Items.Add(bank);
             }
             else
             {
-                foreach (Institution bank in Settings.Instance.DevelopmentInstitutions)
+                foreach (Institution bank in developmentInstitutions)
                     listBoxBankAccounts.Items.Add(bank);
             }
 
@@ -84,8 +91,14 @@ namespace PlaidDemo
                 List<Institution> selectedBanks = listBoxBankAccounts.SelectedItems.Cast<Institution>().ToList();
                 for (int i = 0; i < selectedBanks.Count; i++)
                 {
-                    listBoxBankAccounts.Items.Remove(selectedBanks[i]);
-                    PlaidInterface.DeauthorizeInstitution(selectedBanks[i]);
+                    if ((Enums.Environment)comboBoxPlaidEnvironments.SelectedItem == Enums.Environment.Sandbox)
+                        sandboxInstitutions.Remove(selectedBanks[i]);
+                    else
+                        developmentInstitutions.Remove(selectedBanks[i]);
+
+                    SyncListBox();
+
+                    bankAccountsToDeauthorize.Add(selectedBanks[i]);
                 }
             }
         }
@@ -95,7 +108,12 @@ namespace PlaidDemo
             Institution bank = PlaidInterface.GetInstitutionById(textBoxInstitutionId.Text);
             bank.Credentials = PlaidInterface.AuthorizeInstitution(bank, textBoxPublicToken.Text);
 
-            listBoxBankAccounts.Items.Add(bank);
+            if ((Enums.Environment)comboBoxPlaidEnvironments.SelectedItem == Enums.Environment.Sandbox)
+                sandboxInstitutions.Add(bank);
+            else
+                developmentInstitutions.Add(bank);
+
+            SyncListBox();
 
             labelInstitutionId.Visible = false;
             textBoxInstitutionId.Visible = false;
@@ -126,44 +144,32 @@ namespace PlaidDemo
             Settings.Instance.PlaidSettings.Development_Secret = textBoxDevelopmentSecret.Text;
             Settings.Instance.PlaidSettings.Environment = (Enums.Environment)comboBoxPlaidEnvironments.SelectedItem;
 
-            if (Settings.Instance.PlaidSettings.Environment == Enums.Environment.Sandbox)
-            {
-                Settings.Instance.SandboxInstitutions.Clear();
-                foreach (Institution bank in listBoxBankAccounts.Items.Cast<Institution>())
-                    Settings.Instance.SandboxInstitutions.Add(bank);
-            }
-            else
-            {
-                Settings.Instance.DevelopmentInstitutions.Clear();
-                foreach (Institution bank in listBoxBankAccounts.Items.Cast<Institution>())
-                    Settings.Instance.DevelopmentInstitutions.Add(bank);
-            }
+            Settings.Instance.SandboxInstitutions.Clear();
+            Settings.Instance.SandboxInstitutions.AddRange(sandboxInstitutions);
+            Settings.Instance.DevelopmentInstitutions.Clear();
+            Settings.Instance.DevelopmentInstitutions.AddRange(developmentInstitutions);
 
             Settings.SaveSettings();
         }
 
-        private void tabControl_SelectedIndexChanged(object sender, EventArgs e)
+        private void SyncListBox()
         {
-            SaveSettings();
-
             listBoxBankAccounts.Items.Clear();
-            if (Settings.Instance.PlaidSettings.Environment == Enums.Environment.Sandbox)
+            if ((Enums.Environment)comboBoxPlaidEnvironments.SelectedItem == Enums.Environment.Sandbox)
             {
-                foreach (Institution bank in Settings.Instance.SandboxInstitutions)
+                foreach (Institution bank in sandboxInstitutions)
                     listBoxBankAccounts.Items.Add(bank);
             }
             else
             {
-                foreach (Institution bank in Settings.Instance.DevelopmentInstitutions)
+                foreach (Institution bank in developmentInstitutions)
                     listBoxBankAccounts.Items.Add(bank);
             }
         }
 
         private void comboBoxPlaidEnvironments_SelectedIndexChanged(object sender, EventArgs e)
         {
-            DialogResult result = MessageBox.Show("Do you want to reset the " + comboBoxPlaidEnvironments.SelectedItem + " accounts?", "Reset accounts?", MessageBoxButtons.YesNo);
-            if (result == DialogResult.Yes)
-                listBoxBankAccounts.Items.Clear();
+            SyncListBox();
         }
 
         private void listBoxBankAccounts_MouseDown(object sender, MouseEventArgs e)
@@ -179,10 +185,26 @@ namespace PlaidDemo
 
                 ContextMenu removeMenu = new ContextMenu();
                 MenuItem removeItem = new MenuItem() { Text = "Remove" };
-                removeItem.Click += (s, args) => { listBoxBankAccounts.Items.RemoveAt(index); };
+                removeItem.Click += (s, args) => 
+                {
+                    bankAccountsToDeauthorize.Add((Institution)listBoxBankAccounts.Items[index]);
+
+                    if ((Enums.Environment)comboBoxPlaidEnvironments.SelectedItem == Enums.Environment.Sandbox)
+                        sandboxInstitutions.RemoveAt(index);
+                    else
+                        developmentInstitutions.RemoveAt(index);
+
+                    SyncListBox();
+                };
                 removeMenu.MenuItems.Add(removeItem);
                 removeMenu.Show((sender as ListBox), new Point(e.X, e.Y));
             }
+        }
+
+        private void DeauthorizeBankAccounts()
+        {
+            foreach (Institution bank in bankAccountsToDeauthorize)
+                PlaidInterface.DeauthorizeInstitution(bank);
         }
     }
 }

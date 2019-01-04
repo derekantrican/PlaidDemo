@@ -91,7 +91,6 @@
             this.tabControl.SelectedIndex = 0;
             this.tabControl.Size = new System.Drawing.Size(455, 348);
             this.tabControl.TabIndex = 2;
-            this.tabControl.SelectedIndexChanged += new System.EventHandler(this.tabControl_SelectedIndexChanged);
             // 
             // tabPageMain
             // 
@@ -250,6 +249,7 @@
             // 
             // comboBoxPlaidEnvironments
             // 
+            this.comboBoxPlaidEnvironments.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBoxPlaidEnvironments.FormattingEnabled = true;
             this.comboBoxPlaidEnvironments.Location = new System.Drawing.Point(81, 180);
             this.comboBoxPlaidEnvironments.Name = "comboBoxPlaidEnvironments";
