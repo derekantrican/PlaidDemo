@@ -18,9 +18,9 @@ namespace PlaidDemo
             get
             {
                 if (Amount < 0)
-                    return "-$" + Math.Abs(Amount);
+                    return "-$" + $"{Math.Abs(Amount):F2}";
                 else
-                    return "$" + Amount;
+                    return "$" + $"{Amount:F2}";
             }
         }
 

@@ -23,9 +23,9 @@ namespace PlaidDemo
             get
             {
                 if (AvailableBalance < 0)
-                    return "-$" + Math.Abs(AvailableBalance);
+                    return "-$" + $"{Math.Abs(AvailableBalance):F2}";
                 else
-                    return "$" + AvailableBalance;
+                    return "$" + $"{AvailableBalance:F2}";
             }
         }
 

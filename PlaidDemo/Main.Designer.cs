@@ -148,6 +148,7 @@
             // 
             // pictureBoxExport
             // 
+            this.pictureBoxExport.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.pictureBoxExport.Image = global::PlaidDemo.Properties.Resources.export;
             this.pictureBoxExport.Location = new System.Drawing.Point(744, -1);
             this.pictureBoxExport.Name = "pictureBoxExport";
@@ -159,6 +160,7 @@
             // 
             // pictureBoxSettings
             // 
+            this.pictureBoxSettings.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.pictureBoxSettings.Image = global::PlaidDemo.Properties.Resources.settings;
             this.pictureBoxSettings.Location = new System.Drawing.Point(775, -1);
             this.pictureBoxSettings.Name = "pictureBoxSettings";
