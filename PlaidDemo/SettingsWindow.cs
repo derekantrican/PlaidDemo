@@ -184,6 +184,14 @@ namespace PlaidDemo
                 this.listBoxBankAccounts.SelectedIndex = index;
 
                 ContextMenu removeMenu = new ContextMenu();
+
+                MenuItem updateItem = new MenuItem() { Text = "Update" };
+                updateItem.Click += (s, args) =>
+                {
+                    PlaidInterface.RefreshToken(((Institution)listBoxBankAccounts.Items[index]).Credentials.AccessToken);
+                };
+                removeMenu.MenuItems.Add(updateItem);
+
                 MenuItem removeItem = new MenuItem() { Text = "Remove" };
                 removeItem.Click += (s, args) => 
                 {
@@ -197,6 +205,7 @@ namespace PlaidDemo
                     SyncListBox();
                 };
                 removeMenu.MenuItems.Add(removeItem);
+
                 removeMenu.Show((sender as ListBox), new Point(e.X, e.Y));
             }
         }

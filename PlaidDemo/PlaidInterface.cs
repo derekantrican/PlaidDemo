@@ -13,7 +13,7 @@ namespace PlaidDemo
 {
     public static class PlaidInterface
     {
-        public static void StartPlaidLink()
+        public static void StartPlaidLink(string initToken = null)
         {
             if (Settings.Instance.PlaidSettings.Environment == Enums.Environment.Sandbox)
             {
@@ -23,33 +23,77 @@ namespace PlaidDemo
                 MessageBox.Show(message);
             }
 
-            string plaidLinkHTML = "<script src=\"https://cdn.plaid.com/link/v2/stable/link-initialize.js\"></script>" +
-                                   "<script type=\"text/javascript\">" +
-                                       "function myFunction() {" +
-                                           "var handler = Plaid.create({" +
-                                               "clientName: 'Plaid Demo'," +
-                                               "env: '" + Settings.Instance.PlaidSettings.Environment.ToString().ToLower() + "'," +
-                                               "key: '" + Settings.Instance.PlaidSettings.Public_Key + "'," +
-                                               "product: ['transactions']," +
-                                               "onLoad: function() {}," +
-                                               "onSuccess: function(public_token, metadata) {" +
-                                                   "prompt('Please copy the institution id below and insert it into the application:', metadata.institution.institution_id);" +
-                                                   "prompt('Please copy the public token below and insert it into the application:', public_token);" +
-                                                   "window.close();" +
-                                               "}," +
-                                               "onExit: function(err, metadata) {}," +
-                                               "onEvent: function(eventName, metadata) {}" +
-                                           "});" +
+            string plaidLinkHTML;
+            if (!string.IsNullOrEmpty(initToken))
+            {
+                plaidLinkHTML = "<script src=\"https://cdn.plaid.com/link/v2/stable/link-initialize.js\"></script>" +
+                       "<script type=\"text/javascript\">" +
+                           "function myFunction() {" +
+                               "var handler = Plaid.create({" +
+                                   $"token: '{initToken}'," +
+                                   "onSuccess: function(public_token, metadata) {" +
+                                       "alert('Successfully updated the access token!');" +
+                                       "window.close();" +
+                                   "}," +
+                                   "onExit: function(err, metadata) {}," +
+                               "});" +
 
-                                           "handler.open();" +
-                                       "};" +
+                               "handler.open();" +
+                           "};" +
 
-                                       "window.onload = myFunction;" +
-                                   "</script>";
+                           "window.onload = myFunction;" +
+                       "</script>";
+            }
+            else
+            {
+                plaidLinkHTML = "<script src=\"https://cdn.plaid.com/link/v2/stable/link-initialize.js\"></script>" +
+                       "<script type=\"text/javascript\">" +
+                           "function myFunction() {" +
+                               "var handler = Plaid.create({" +
+                                   "clientName: 'Plaid Demo'," +
+                                   "env: '" + Settings.Instance.PlaidSettings.Environment.ToString().ToLower() + "'," +
+                                   "key: '" + Settings.Instance.PlaidSettings.Public_Key + "'," +
+                                   "product: ['transactions']," +
+                                   "onLoad: function() {}," +
+                                   "onSuccess: function(public_token, metadata) {" +
+                                       "prompt('Please copy the institution id below and insert it into the application:', metadata.institution.institution_id);" +
+                                       "prompt('Please copy the public token below and insert it into the application:', public_token);" +
+                                       "window.close();" +
+                                   "}," +
+                                   "onExit: function(err, metadata) {}," +
+                                   "onEvent: function(eventName, metadata) {}" +
+                               "});" +
+
+                               "handler.open();" +
+                           "};" +
+
+                           "window.onload = myFunction;" +
+                       "</script>";
+            }
 
             string tempPath = Path.GetTempFileName().Replace(".tmp", ".html");
             File.WriteAllText(tempPath, plaidLinkHTML);
             Process.Start(tempPath);
+        }
+
+        public static void RefreshToken(string currentToken)
+        {
+            JObject json = JObject.FromObject(new 
+            { 
+                user = new
+                {
+                    client_user_id = Guid.NewGuid(),
+                },
+                client_id = Settings.Instance.PlaidSettings.Client_Id,
+                client_name = "Plaid Demo",
+                country_codes = new[] { "US" },
+                language = "en",
+                secret = GetSecret(),
+                access_token = currentToken
+            });
+            
+            JObject response = HttpRequestToPlaid("link/token/create", json);
+            StartPlaidLink(response["link_token"].Value<string>());
         }
 
         public static List<Institution> GetAllInstitutions()
@@ -267,7 +311,14 @@ namespace PlaidDemo
                     errorMessage += "\nError Response: " + reader.ReadToEnd();
                 }
 
-                MessageBox.Show("Error contacting Plaid: \n\n" + errorMessage);
+                if (errorMessage.Contains("ITEM_LOGIN_REQUIRED"))
+                {
+                    MessageBox.Show("Credentials need to be updated. Please go to Settings, right-click on the institution and select \"Update\"");
+                }
+                else
+                {
+                    MessageBox.Show("Error contacting Plaid: \n\n" + errorMessage);
+                }
             }
             catch (Exception ex)
             {
